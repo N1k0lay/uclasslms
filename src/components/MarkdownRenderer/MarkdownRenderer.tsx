@@ -43,7 +43,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, course }) 
 
                             const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'svg'];
                             if (fileExt && imageExtensions.includes(fileExt)) {
-                                return <Image src={filePath} alt={fileName} style={{ maxWidth: '100%' }}/>;
+                                return <Image width={500} height={500} src={filePath} loading={'lazy'} alt={fileName} style={{ maxWidth: '100%' }} />;
                             }
 
                             if (fileExt === 'pdf') {
