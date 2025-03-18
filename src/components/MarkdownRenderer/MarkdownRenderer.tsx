@@ -35,7 +35,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, course }) 
                 p({ children }) {
                     const child = Array.isArray(children) ? children[0] : children;
                     if (typeof child === 'string') {
-                        const obsidianLinkMatch = child.match(/!\[\[(.*?)\]\]/);
+                        const obsidianLinkMatch = child.match(/!\[\[(.*?)]]/);
                         if (obsidianLinkMatch) {
                             const fileName = obsidianLinkMatch[1];
                             const fileExt = fileName.split('.').pop()?.toLowerCase();
