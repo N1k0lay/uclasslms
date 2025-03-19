@@ -13,25 +13,24 @@ interface Topic {
 }
 
 interface Course {
-    course: string;
+    slug: string;
+    originalName: string;
     topics: Topic[];
 }
 
 interface TopicItemProps {
-    course: string;
+    courseSlug: string;
     topic: Topic;
 }
 
-const TopicItem: React.FC<TopicItemProps> = ({ course, topic }) => {
+const TopicItem: React.FC<TopicItemProps> = ({ courseSlug, topic }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const linkPath = `/${course}/${topic.slugPath}`;
+    const linkPath = `/${courseSlug}/${topic.slugPath}`;
 
     const handleClick = (e: React.MouseEvent) => {
         if (topic.isFolder) {
             e.preventDefault();
-            if (topic.hasIndex) {
-                return;
-            }
+            if (topic.hasIndex) return;
             setIsOpen(!isOpen);
         }
     };
@@ -40,10 +39,7 @@ const TopicItem: React.FC<TopicItemProps> = ({ course, topic }) => {
         <li>
             {topic.isFolder ? (
                 <div>
-          <span
-              onClick={handleClick}
-              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-          >
+          <span onClick={handleClick} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
             {isOpen ? '▼' : '▶'}
               {topic.hasIndex ? (
                   <Link href={linkPath} style={{ marginLeft: '8px' }}>
@@ -56,7 +52,7 @@ const TopicItem: React.FC<TopicItemProps> = ({ course, topic }) => {
                     {topic.subTopics && topic.subTopics.length > 0 && isOpen && (
                         <ul style={{ marginLeft: '20px' }}>
                             {topic.subTopics.map((subTopic) => (
-                                <TopicItem key={subTopic.slug} course={course} topic={subTopic} />
+                                <TopicItem key={subTopic.slug} courseSlug={courseSlug} topic={subTopic} />
                             ))}
                         </ul>
                     )}
@@ -76,30 +72,16 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ coursesStructure }) => {
     return (
-        <nav
-            style={{
-                padding: '16px',
-                backgroundColor: '#f5f5f5',
-                borderRadius: '8px',
-                maxWidth: '300px',
-            }}
-        >
+        <nav style={{ padding: '16px', backgroundColor: '#f5f5f5', borderRadius: '8px', maxWidth: '300px' }}>
             <ul style={{ listStyleType: 'none', padding: 0 }}>
-                {coursesStructure.map((courseItem) => (
-                    <li key={courseItem.course}>
-                        <strong
-                            style={{
-                                display: 'block',
-                                marginBottom: '8px',
-                                fontSize: '1.2em',
-                                color: '#333',
-                            }}
-                        >
-                            {courseItem.course}
+                {coursesStructure.map((course) => (
+                    <li key={course.slug}>
+                        <strong style={{ display: 'block', marginBottom: '8px', fontSize: '1.2em', color: '#333' }}>
+                            {course.originalName}
                         </strong>
                         <ul style={{ listStyleType: 'none', padding: 0 }}>
-                            {courseItem.topics.map((topic) => (
-                                <TopicItem key={topic.slug} course={courseItem.course} topic={topic} />
+                            {course.topics.map((topic) => (
+                                <TopicItem key={topic.slug} courseSlug={course.slug} topic={topic} />
                             ))}
                         </ul>
                     </li>

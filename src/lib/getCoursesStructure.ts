@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
-import { transliterate } from 'transliteration';
+import normalizeSlug from './normalizeSlug';
 
 interface Topic {
     slug: string;
@@ -9,13 +9,14 @@ interface Topic {
     originalFileName: string;
     fullPath: string;
     slugPath: string;
-    isFolder: boolean; // Признак, что это папка
-    hasIndex?: boolean; // Есть ли index.md
+    isFolder: boolean;
+    hasIndex?: boolean;
     subTopics?: Topic[];
 }
 
 interface Course {
-    course: string;
+    slug: string;
+    originalName: string;
     topics: Topic[];
 }
 
@@ -26,7 +27,7 @@ function scanDirectory(dirPath: string, basePath: string = '', slugBase: string 
     for (const item of items) {
         const fullPath = path.join(dirPath, item.name);
         const relativePath = path.join(basePath, item.name);
-        const slug = transliterate(item.name.replace('.md', '')).toLowerCase().replace(/\s+/g, '-');
+        const slug = normalizeSlug(item.name.replace('.md', ''));
         const slugPath = slugBase ? `${slugBase}/${slug}` : slug;
 
         if (item.isDirectory()) {
@@ -68,13 +69,17 @@ export function getCoursesStructure(): Course[] {
     return courses.map((course) => {
         const courseDir = path.join(coursesDir, course);
         const topics = scanDirectory(courseDir);
-        return { course, topics };
+        return {
+            slug: normalizeSlug(course),
+            originalName: course,
+            topics,
+        };
     });
 }
 
-export function getTopicFileName(course: string, slugPath: string): string | null {
+export function getTopicFileName(courseSlug: string, slugPath: string): string | null {
     const structure = getCoursesStructure();
-    const courseData = structure.find((c) => c.course === course);
+    const courseData = structure.find((c) => c.slug === courseSlug);
     if (!courseData) return null;
 
     const decodedSlugPath = decodeURIComponent(slugPath);
@@ -101,4 +106,32 @@ export function getTopicFileName(course: string, slugPath: string): string | nul
 
     const topic = findTopic(courseData.topics);
     return topic ? topic.fullPath : null;
+}
+
+export function getOriginalCourseName(courseSlug: string): string | null {
+    const structure = getCoursesStructure();
+    const courseData = structure.find((c) => c.slug === courseSlug);
+    return courseData ? courseData.originalName : null;
+}
+
+// Новая функция для поиска slugPath по имени файла
+export function getTopicSlugPath(courseSlug: string, fileName: string): string | null {
+    const structure = getCoursesStructure();
+    const courseData = structure.find((c) => c.slug === courseSlug);
+    if (!courseData) return null;
+
+    function findTopicByFileName(topics: Topic[]): Topic | undefined {
+        for (const topic of topics) {
+            if (topic.originalFileName === fileName) {
+                return topic;
+            }
+            if (topic.subTopics) {
+                const found = findTopicByFileName(topic.subTopics);
+                if (found) return found;
+            }
+        }
+    }
+
+    const topic = findTopicByFileName(courseData.topics);
+    return topic ? topic.slugPath : null;
 }
