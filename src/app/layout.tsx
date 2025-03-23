@@ -1,5 +1,6 @@
-import { getCoursesStructure } from '../lib/getCoursesStructure';
 import Navbar from '@/components/Navbar';
+import {getCoursesStructure} from "@/lib/getCoursesStructure";
+import './globals.css';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     const coursesStructure = getCoursesStructure();

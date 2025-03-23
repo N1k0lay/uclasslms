@@ -1,33 +1,31 @@
 import fs from 'fs';
 import path from 'path';
 
-const findFileInCourse = (fileName: string, dir: string): string | null => {
-    try {
-        const items = fs.readdirSync(dir, { withFileTypes: true });
-        console.log(`Scanning dir: ${dir} for ${fileName}`);
-        for (const item of items) {
-            const fullPath = path.join(dir, item.name);
-            if (item.isDirectory()) {
-                const found = findFileInCourse(fileName, fullPath);
-                if (found) return found;
-            } else if (item.name === fileName) {
-                console.log(`Found: ${fullPath}`);
-                return fullPath;
-            }
+const searchUpwards = (fileName: string, startDir: string, rootDir: string): string | null => {
+    let currentDir = startDir;
+    while (currentDir.startsWith(rootDir)) {
+        const fullPath = path.join(currentDir, fileName);
+        console.log(`Searching upwards: ${fullPath}`);
+        if (fs.existsSync(fullPath)) {
+            console.log(`Found upwards: ${fullPath}`);
+            return fullPath;
         }
-        return null;
-    } catch (error) {
-        console.error(`Ошибка при сканировании директории ${dir}:`, error);
-        return null;
+        currentDir = path.dirname(currentDir);
+        if (currentDir === rootDir) break; // Дошли до корня курса
     }
+    console.log(`Not found upwards for ${fileName} in ${rootDir}`);
+    return null;
 };
 
 export const checkFileExists = (fileName: string, currentDir: string, courseDir: string): string | null => {
+    // Сначала проверяем в currentDir
     const relativePath = path.join(currentDir, fileName);
-    console.log('Checking:', { fileName, currentDir, courseDir, relativePath });
+    console.log('Checking currentDir:', { fileName, currentDir, relativePath });
     if (fs.existsSync(relativePath)) {
         console.log(`Found in currentDir: ${relativePath}`);
         return relativePath;
     }
-    return findFileInCourse(fileName, courseDir);
+
+    // Ищем вверх по директориям до courseDir
+    return searchUpwards(fileName, currentDir, courseDir);
 };

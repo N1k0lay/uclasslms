@@ -1,0 +1,86 @@
+.callout {
+    margin: 1em 0;
+    padding: 0.5em 1em;
+    border-left: 4px solid;
+    background-color: #f9f9f9;
+}
+
+.calloutTitle {
+    font-weight: bold;
+    margin-bottom: 0.5em;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.calloutContent {
+    margin-left: 1em;
+}
+
+.callout[data-callout="note"] {
+    border-color: #808080;
+    background-color: #f6f6f6;
+}
+
+.callout[data-callout="info"],
+.callout[data-callout="todo"] {
+    border-color: #00b7eb;
+    background-color: #e6f7fa;
+}
+
+.callout[data-callout="tip"],
+.callout[data-callout="hint"],
+.callout[data-callout="important"] {
+    border-color: #00cc44;
+    background-color: #e6ffe6;
+}
+
+.callout[data-callout="success"],
+.callout[data-callout="check"],
+.callout[data-callout="done"] {
+    border-color: #28a745;
+    background-color: #e9f7e9;
+}
+
+.callout[data-callout="question"],
+.callout[data-callout="help"],
+.callout[data-callout="faq"] {
+    border-color: #ffca28;
+    background-color: #fff8e1;
+}
+
+.callout[data-callout="warning"],
+.callout[data-callout="caution"],
+.callout[data-callout="attention"] {
+    border-color: #ff9800;
+    background-color: #fff3e0;
+}
+
+.callout[data-callout="failure"],
+.callout[data-callout="fail"],
+.callout[data-callout="missing"] {
+    border-color: #f44336;
+    background-color: #ffebee;
+}
+
+.callout[data-callout="danger"],
+.callout[data-callout="error"] {
+    border-color: #d32f2f;
+    background-color: #ffe6e6;
+}
+
+.callout[data-callout="bug"] {
+    border-color: #9c27b0;
+    background-color: #f3e5f5;
+}
+
+.callout[data-callout="example"] {
+    border-color: #3f51b5;
+    background-color: #e8eaf6;
+}
+
+.callout[data-callout="quote"],
+.callout[data-callout="cite"] {
+    border-color: #607d8b;
+    background-color: #eceff1;
+}

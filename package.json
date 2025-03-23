@@ -1,6 +1,6 @@
 {
   "name": "uclasslmc",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.3.0",
+    "@types/unist": "^3.0.3",
     "gray-matter": "^4.0.3",
+    "marked": "^15.0.7",
     "next": "15.2.3",
     "pdfjs-dist": "^5.0.375",
     "prism-react-renderer": "^2.4.1",
@@ -20,7 +22,10 @@
     "react-markdown": "^10.1.0",
     "react-pdf": "^9.2.1",
     "react-syntax-highlighter": "^15.6.1",
-    "transliteration": "^2.3.5"
+    "remark-gfm": "^4.0.1",
+    "transliteration": "^2.3.5",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
