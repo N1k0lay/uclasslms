@@ -1,0 +1,74 @@
+[data-callout] {
+    margin: 1em 0;
+    padding: 0.5em 1em;
+    border-left: 4px solid #808080;
+    background-color: #f9f9f9;
+}
+
+[data-callout-type="note"] {
+    border-color: #808080;
+    background-color: #f6f6f6;
+}
+
+[data-callout-type="info"],
+[data-callout-type="todo"] {
+    border-color: #00b7eb;
+    background-color: #e6f7fa;
+}
+
+[data-callout-type="tip"],
+[data-callout-type="hint"],
+[data-callout-type="important"] {
+    border-color: #00cc44;
+    background-color: #e6ffe6;
+}
+
+[data-callout-type="success"],
+[data-callout-type="check"],
+[data-callout-type="done"] {
+    border-color: #28a745;
+    background-color: #e9f7e9;
+}
+
+[data-callout-type="question"],
+[data-callout-type="help"],
+[data-callout-type="faq"] {
+    border-color: #ffca28;
+    background-color: #fff8e1;
+}
+
+[data-callout-type="warning"],
+[data-callout-type="caution"],
+[data-callout-type="attention"] {
+    border-color: #ff9800;
+    background-color: #fff3e0;
+}
+
+[data-callout-type="failure"],
+[data-callout-type="fail"],
+[data-callout-type="missing"] {
+    border-color: #f44336;
+    background-color: #ffebee;
+}
+
+[data-callout-type="danger"],
+[data-callout-type="error"] {
+    border-color: #d32f2f;
+    background-color: #ffe6e6;
+}
+
+[data-callout-type="bug"] {
+    border-color: #9c27b0;
+    background-color: #f3e5f5;
+}
+
+[data-callout-type="example"] {
+    border-color: #3f51b5;
+    background-color: #e8eaf6;
+}
+
+[data-callout-type="quote"],
+[data-callout-type="cite"] {
+    border-color: #607d8b;
+    background-color: #eceff1;
+}

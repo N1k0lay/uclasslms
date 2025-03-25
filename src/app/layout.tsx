@@ -1,6 +1,7 @@
 import Navbar from '@/components/Navbar';
 import {getCoursesStructure} from "@/lib/getCoursesStructure";
 import './globals.css';
+import 'katex/dist/katex.min.css';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     const coursesStructure = getCoursesStructure();

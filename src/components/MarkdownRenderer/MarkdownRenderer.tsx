@@ -1,20 +1,37 @@
-import React, { useMemo, ReactNode, isValidElement, ReactElement } from 'react';
+import React, { ReactNode, useMemo } from 'react';
 import ReactMarkdown, { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import remarkCallouts from '@/lib/remarkCallouts';
-import Callout from '@/components/Callout';
+import remarkCallout from '@r4ai/remark-callout';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { checkFileExists } from '@/lib/checkFileExists';
 import { getTopicSlugPath } from '@/lib/getCoursesStructure';
 import path from 'path';
 import fs from 'fs';
-import { Node } from 'unist';
+import './Callout.css';
 
-// Интерфейс для props элементов callout
-interface CalloutElementProps {
+// Интерфейсы для пропсов компонентов
+interface AnchorProps {
+    href?: string;
+    children?: ReactNode; // Теперь необязательный
+    [key: string]: any;
+}
+
+interface ParagraphProps {
+    children?: ReactNode; // Теперь необязательный
+}
+
+interface CodeProps {
     className?: string;
-    children?: ReactNode;
+    children?: ReactNode; // Теперь необязательный
+}
+
+interface ImageProps {
+    src?: string;
+    alt?: string;
+    [key: string]: any;
 }
 
 interface MarkdownRendererProps {
@@ -24,6 +41,7 @@ interface MarkdownRendererProps {
     courseDir: string;
 }
 
+// Функция для разрешения путей к файлам
 const resolveFilePath = (
     rawPath: string,
     currentDir: string,
@@ -37,7 +55,6 @@ const resolveFilePath = (
         if (isExplicitRelative) {
             fileName = fileName.replace(/^\.\//, '').replace(/^\.\.\//, '');
             const resolvedPath = path.resolve(currentDir, fileName);
-            console.log('Explicit relative path:', { rawPath, fileName, resolvedPath, currentDir });
             if (fs.existsSync(resolvedPath)) {
                 filePath = resolvedPath;
             }
@@ -52,7 +69,6 @@ const resolveFilePath = (
             }
         }
 
-        console.log('Resolved:', { rawPath, fileName, filePath });
         return { filePath, fileName };
     } catch (error) {
         console.error('Error resolving file path:', { rawPath, error });
@@ -60,12 +76,14 @@ const resolveFilePath = (
     }
 };
 
+// Основной компонент MarkdownRenderer
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                                                                content,
                                                                courseSlug,
                                                                currentDir,
                                                                courseDir,
                                                            }) => {
+    // Мемоизация функции преобразования вики-ссылок
     const transformWikiLinks = useMemo(() => {
         return (text: string): string => {
             return text.replace(/\[\[(.*?)(?:\|(.*?))?\]\]/g, (match, linkPath, displayText) => {
@@ -102,8 +120,9 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
     const transformedContent = transformWikiLinks(content);
 
+    // Определение кастомных компонентов для ReactMarkdown
     const components: Components = {
-        code({ className, children }) {
+        code({ className, children }: CodeProps) {
             const match = /language-(\w+)/.exec(className || '');
             const isInline = !match;
             return isInline ? (
@@ -114,7 +133,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                 </SyntaxHighlighter>
             );
         },
-        img({ src, alt, ...props }) {
+        img({ src, alt, ...props }: ImageProps) {
             if (!src) return <img src="#" alt={alt} {...props} />;
             const isExplicitRelative = src.startsWith('./') || src.startsWith('../');
             const { filePath, fileName } = resolveFilePath(src, currentDir, courseDir, isExplicitRelative);
@@ -123,7 +142,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                 : '#';
             return <img src={correctedSrc} alt={alt || fileName} style={{ maxWidth: '100%' }} {...props} />;
         },
-        a({ href, children, ...props }) {
+        a({ href, children, ...props }: AnchorProps) {
             if (!href) return <a href="#" {...props}>{children}</a>;
             const isMarkdown = href.endsWith('.md');
             const isExplicitRelative = href.startsWith('./') || href.startsWith('../');
@@ -133,7 +152,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                     ? getTopicSlugPath(courseSlug, fileName, isExplicitRelative ? currentDir : undefined)
                     : null;
                 const correctedHref = filePath ? (slugPath ? `/${courseSlug}/${slugPath}` : `/${courseSlug}`) : '#';
-                console.log('Link:', { href, fileName, filePath, slugPath, correctedHref });
                 return (
                     <a
                         href={correctedHref}
@@ -146,43 +164,21 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             }
             return <a href={href} {...props}>{children}</a>;
         },
-        p({ children }) {
+        p({ children }: ParagraphProps) {
             const child = Array.isArray(children) ? children[0] : children;
             if (typeof child === 'string' && child.startsWith('Не найден:')) {
                 return <p style={{ color: 'red' }}>{child}</p>;
             }
             return <p>{children}</p>;
         },
-        // @ts-ignore
-        callout: ({ node, children }: { node: Node; children: ReactNode[] }) => {
-            const hProperties = (node.data as { hProperties?: { [key: string]: string } })?.hProperties || {};
-            const type = hProperties['data-callout'] || 'note';
-            const collapsed = hProperties['data-collapsed'] === 'true';
-
-            // Явно указываем тип для child как ReactElement<CalloutElementProps>
-            const titleNode = children.find(
-                (child): child is ReactElement<CalloutElementProps> =>
-                    isValidElement<CalloutElementProps>(child) && child.props.className === 'callout-title'
-            );
-            const contentNode = children.find(
-                (child): child is ReactElement<CalloutElementProps> =>
-                    isValidElement<CalloutElementProps>(child) && child.props.className === 'callout-content'
-            );
-
-            return (
-                <Callout
-                    type={type}
-                    title={titleNode?.props.children || type}
-                    collapsed={collapsed}
-                >
-                    {contentNode?.props.children || null}
-                </Callout>
-            );
-        },
     };
 
     return (
-        <ReactMarkdown remarkPlugins={[remarkGfm, remarkCallouts]} components={components}>
+        <ReactMarkdown
+            remarkPlugins={[remarkGfm, remarkCallout, remarkMath]}
+            rehypePlugins={[rehypeKatex]}
+            components={components}
+        >
             {transformedContent}
         </ReactMarkdown>
     );
