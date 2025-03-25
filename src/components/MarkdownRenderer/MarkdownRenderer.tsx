@@ -3,7 +3,9 @@ import ReactMarkdown, { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkCallout from '@r4ai/remark-callout';
 import remarkMath from 'remark-math';
+import remarkToc from 'remark-toc';
 import rehypeKatex from 'rehype-katex';
+import rehypeSlug from 'rehype-slug';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { checkFileExists } from '@/lib/checkFileExists';
@@ -12,20 +14,19 @@ import path from 'path';
 import fs from 'fs';
 import './Callout.css';
 
-// Интерфейсы для пропсов компонентов
 interface AnchorProps {
     href?: string;
-    children?: ReactNode; // Теперь необязательный
+    children?: ReactNode;
     [key: string]: any;
 }
 
 interface ParagraphProps {
-    children?: ReactNode; // Теперь необязательный
+    children?: ReactNode;
 }
 
 interface CodeProps {
     className?: string;
-    children?: ReactNode; // Теперь необязательный
+    children?: ReactNode;
 }
 
 interface ImageProps {
@@ -41,7 +42,6 @@ interface MarkdownRendererProps {
     courseDir: string;
 }
 
-// Функция для разрешения путей к файлам
 const resolveFilePath = (
     rawPath: string,
     currentDir: string,
@@ -76,14 +76,12 @@ const resolveFilePath = (
     }
 };
 
-// Основной компонент MarkdownRenderer
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                                                                content,
                                                                courseSlug,
                                                                currentDir,
                                                                courseDir,
                                                            }) => {
-    // Мемоизация функции преобразования вики-ссылок
     const transformWikiLinks = useMemo(() => {
         return (text: string): string => {
             return text.replace(/\[\[(.*?)(?:\|(.*?))?\]\]/g, (match, linkPath, displayText) => {
@@ -120,7 +118,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
     const transformedContent = transformWikiLinks(content);
 
-    // Определение кастомных компонентов для ReactMarkdown
     const components: Components = {
         code({ className, children }: CodeProps) {
             const match = /language-(\w+)/.exec(className || '');
@@ -175,8 +172,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
     return (
         <ReactMarkdown
-            remarkPlugins={[remarkGfm, remarkCallout, remarkMath]}
-            rehypePlugins={[rehypeKatex]}
+            remarkPlugins={[remarkToc, remarkGfm, remarkCallout, remarkMath]}
+            rehypePlugins={[rehypeSlug, rehypeKatex]}
             components={components}
         >
             {transformedContent}

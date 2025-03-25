@@ -1,35 +1,65 @@
 import fs from 'fs';
 import path from 'path';
-import matter from 'gray-matter';
-import {getOriginalCourseName} from "@/lib/getCoursesStructure";
+import { unified } from 'unified';
+import remarkParse from 'remark-parse';
+import remarkFrontmatter from 'remark-frontmatter';
+import remarkParseFrontmatter from 'remark-parse-frontmatter';
+import remarkToc from 'remark-toc';
+import remarkGfm from 'remark-gfm';
+import remarkCallout from '@r4ai/remark-callout';
+import remarkMath from 'remark-math';
+import remarkRehype from 'remark-rehype';
+import rehypeSlug from 'rehype-slug';
+import { visit } from 'unist-util-visit';
 
-interface CourseContent {
-    data: { [key: string]: any };
-    content: string;
+export interface TocItem {
+    title: string;
+    id: string;
+    level: number;
 }
 
-console.log('Imported getOriginalCourseName:', typeof getOriginalCourseName);
-
-export function loadCourse(courseSlug: string, filePath: string): CourseContent {
-    console.log('loadCourse called with:', { courseSlug, filePath });
-    const originalCourse = getOriginalCourseName(courseSlug);
-    console.log('getOriginalCourseName result:', originalCourse);
-    if (!originalCourse) {
-        throw new Error(`Course ${courseSlug} not found`);
+export function loadCourse(courseSlug: string, fileName: string) {
+    const filePath = path.join(process.cwd(), 'courses', courseSlug, fileName);
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
     }
 
-    let fullPath = path.join(process.cwd(), 'courses', originalCourse, filePath);
-    if (!fullPath.endsWith('.md')) {
-        fullPath = `${fullPath}.md`;
-    }
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
 
-    const stats = fs.statSync(fullPath);
-    if (stats.isDirectory()) {
-        throw new Error(`Expected a file but found a directory: ${fullPath}`);
-    }
+    const processor = unified()
+        .use(remarkParse)
+        .use(remarkFrontmatter, ['yaml'])
+        .use(remarkParseFrontmatter)
+        .use(remarkToc, { heading: 'Оглавление', tight: true })
+        .use(remarkGfm)
+        .use(remarkCallout)
+        .use(remarkMath)
+        .use(remarkRehype)
+        .use(rehypeSlug);
 
-    console.log('Loading file:', { courseSlug, filePath, fullPath });
-    const fileContents = fs.readFileSync(fullPath, 'utf8');
-    const { data, content } = matter(fileContents);
-    return { data, content };
+    const tree = processor.parse(fileContent);
+    const processedTree = processor.runSync(tree);
+
+    // Извлечение фронтматтера
+    const frontmatter = (processedTree.data as any)?.frontmatter || {};
+
+    // Извлечение оглавления
+    let toc: TocItem[] = [];
+    visit(processedTree, 'element', (node: any) => {
+        if (node.tagName && /^h[1-6]$/.test(node.tagName)) {
+            const text = node.children
+                .filter((child: any) => child.type === 'text')
+                .map((child: any) => child.value)
+                .join('');
+            const id = node.properties?.id || text.toLowerCase().replace(/\s+/g, '-');
+            const level = parseInt(node.tagName.slice(1), 10);
+            toc.push({ title: text, id, level });
+        }
+    });
+
+    // Разделение на контент
+    const contentStart = fileContent.indexOf('\n---\n', 3) + 5;
+    const content = fileContent.slice(contentStart).trim();
+
+    return { data: frontmatter, content, toc };
 }
