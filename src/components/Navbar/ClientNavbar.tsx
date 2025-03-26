@@ -18,7 +18,7 @@ interface TopicItemProps {
 const TopicItem: React.FC<TopicItemProps> = ({ courseSlug, topic, isOpen, toggleOpen }) => {
     const linkPath = `/${courseSlug}/${topic.slugPath}`;
 
-    const handleClick = (e: React.MouseEvent) => {
+    const handleClick = () => {
         if (topic.isFolder) {
             toggleOpen(topic.slugPath);
         }

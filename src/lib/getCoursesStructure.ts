@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
-import { transliterate } from 'transliteration';
-import { createHash } from 'crypto';
+import {transliterate} from 'transliteration';
+import {createHash} from 'crypto';
 
 interface Cache {
     structure: Course[];
@@ -64,19 +64,19 @@ function scanDirectory(dirPath: string, basePath: string = '', slugBase: string 
     for (const item of items) {
         const fullPath = path.join(dirPath, item.name);
         const relativePath = path.join(basePath, item.name);
-        let slug = normalizeSlug(item.name.replace('.md', ''));
+        const slug = normalizeSlug(item.name.replace('.md', ''));
         let slugPath = slugBase ? `${slugBase}/${slug}` : slug;
 
         if (slugSet.has(slugPath)) {
             const isFile = item.name.endsWith('.md');
             slugPath = `${slugPath}${isFile ? '-file' : '-folder'}`;
-            console.warn(`Duplicate slugPath detected, adjusted to: ${slugPath}`);
+            // console.warn(`Duplicate slugPath detected, adjusted to: ${slugPath}`);
         }
         slugSet.add(slugPath);
 
         if (item.isDirectory()) {
             if (!hasMarkdownFiles(fullPath)) {
-                console.log(`Skipping folder without .md files: ${relativePath}`);
+                // console.log(`Skipping folder without .md files: ${relativePath}`);
                 continue;
             }
 
@@ -134,7 +134,6 @@ function scanDirectory(dirPath: string, basePath: string = '', slugBase: string 
 }
 
 function getDirectoryHash(dir: string): string {
-    const items = fs.readdirSync(dir, { withFileTypes: true });
     const fileList: string[] = [];
 
     function scanDir(currentDir: string, base: string = '') {
@@ -151,8 +150,7 @@ function getDirectoryHash(dir: string): string {
 
     scanDir(dir);
     fileList.sort();
-    const hash = createHash('md5').update(fileList.join('')).digest('hex');
-    return hash;
+    return createHash('md5').update(fileList.join('')).digest('hex');
 }
 
 function getLastModifiedTime(dir: string): number {
@@ -185,11 +183,11 @@ export function getCoursesStructure(): Course[] {
         courseCache.lastModified >= currentLastModified &&
         courseCache.fileHash === currentFileHash
     ) {
-        console.log('Returning cached structure');
+        // console.log('Returning cached structure');
         return courseCache.structure;
     }
 
-    console.log('Updating course structure cache');
+    // console.log('Updating course structure cache');
     const courses = fs.readdirSync(coursesDir, { withFileTypes: true })
         .filter((dirent) => dirent.isDirectory())
         .map((dirent) => dirent.name);
@@ -260,7 +258,7 @@ export function getTopicFileName(courseSlug: string, slugPath: string): string |
     }
 
     const topic = findTopic(courseData.topics);
-    console.log('getTopicFileName:', { courseSlug, slugPath, decodedSlugPath, topic });
+    // console.log('getTopicFileName:', { courseSlug, slugPath, decodedSlugPath, topic });
     return topic ? topic.fullPath : null;
 }
 
@@ -294,6 +292,6 @@ export function getTopicSlugPath(courseSlug: string, fileName: string, currentDi
 
     const relativeCurrentDir = currentDir ? path.relative(path.join(process.cwd(), 'courses', courseSlug), currentDir) : undefined;
     const topic = findTopicByFileName(courseData.topics, relativeCurrentDir);
-    console.log('getTopicSlugPath:', { courseSlug, fileName, currentDir, relativeCurrentDir, topic });
+    // console.log('getTopicSlugPath:', { courseSlug, fileName, currentDir, relativeCurrentDir, topic });
     return topic ? topic.slugPath : null;
 }

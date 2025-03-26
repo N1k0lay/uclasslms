@@ -4,6 +4,19 @@ import { loadCourse, TocItem } from '@/lib/loadCourse';
 import path from 'path';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 
+interface CoursePageParams {
+    params: Promise<{
+        course: string;
+        topic?: string[];
+    }>;
+}
+
+interface FrontmatterData {
+    title?: string;
+    'last-modified'?: string;
+    author?: string;
+}
+
 // Компонент для рендеринга сайдбара
 function TocSidebar({ toc }: { toc: TocItem[] }) {
     return (
@@ -28,42 +41,35 @@ function TocSidebar({ toc }: { toc: TocItem[] }) {
     );
 }
 
-interface CoursePageParams {
-    params: Promise<{
-        course: string;
-        topic?: string[];
-    }>;
-}
-
 export default async function CoursePage({ params }: CoursePageParams) {
     const { course: courseSlug, topic } = await params;
 
     if (!courseSlug) {
-        console.log('Course slug missing:', { courseSlug });
+        // console.log('Course slug missing:', { courseSlug });
         return <p>Загрузка...</p>;
     }
 
     const coursesStructure = getCoursesStructure();
     const isApiRoute = courseSlug === 'api' && !coursesStructure.some((c) => c.slug === 'api');
     if (isApiRoute) {
-        console.log('API route detected, skipping page rendering:', { courseSlug, topic });
+        // console.log('API route detected, skipping page rendering:', { courseSlug, topic });
         notFound();
     }
 
     const slugPath = topic && topic.length > 0 ? topic.join('/') : '';
-    console.log('Generated slugPath:', slugPath);
+    //console.log('Generated slugPath:', slugPath);
 
     const cleanedSlugPath = slugPath.endsWith('/index') ? slugPath.replace('/index', '') : slugPath;
 
     const originalFileName = getTopicFileName(courseSlug, cleanedSlugPath);
-    console.log('Found file:', originalFileName);
+    // console.log('Found file:', originalFileName);
 
     if (!originalFileName) {
-        console.log('File not found for:', { courseSlug, slugPath: cleanedSlugPath });
+        // console.log('File not found for:', { courseSlug, slugPath: cleanedSlugPath });
         notFound();
     }
 
-    let data, content, toc;
+    let data: FrontmatterData, content, toc;
     try {
         ({ data, content, toc } = loadCourse(courseSlug, originalFileName));
     } catch (error) {
@@ -85,8 +91,8 @@ export default async function CoursePage({ params }: CoursePageParams) {
             <div style={{ flexGrow: 1, padding: '20px', maxWidth: '70%' }}>
                 <h1>{data.title || originalFileName.split('/').pop()?.replace('.md', '') || 'Курс ' + courseSlug}</h1>
                 {Object.keys(data).length > 0 && (
-                    <div style={{ marginBottom: '20px', color: '#666' }}>
-                        {data.date && <p><strong>Дата:</strong> {data.date}</p>}
+                    <div style={{ marginBottom: '20px' }}>
+                        {data['last-modified'] && <p><strong>Последнее изменение:</strong> {data['last-modified']}</p>}
                         {data.author && <p><strong>Автор:</strong> {data.author}</p>}
                     </div>
                 )}
